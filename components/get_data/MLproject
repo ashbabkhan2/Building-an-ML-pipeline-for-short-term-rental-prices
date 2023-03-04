@@ -1,0 +1,28 @@
+name: download_file
+conda_env: conda.yml
+
+entry_points:
+  main:
+    parameters:
+      sample:
+        description: Name of sample to download
+        type: string
+
+      artifact_name:
+        description: Name for the output artifact
+        type: str
+
+      artifact_type:
+        description: Type of the output artifact. This will be used to categorize the artifact in the W&B
+                     interface
+        type: str
+
+      artifact_description:
+        description: A brief description of the output artifact
+        type: str
+
+    command: >-
+      python run.py --sample {sample} \
+                    --artifact_name {artifact_name} \
+                    --artifact_type {artifact_type} \
+                    --artifact_description {artifact_description}
