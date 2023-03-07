@@ -36,3 +36,10 @@ modeling:
     max_features: 0.5
     # DO not change the following
     oob_score: true
+# defaults:
+#   - _self_
+#   - version_base: 1.1
+
+hydra:
+  job:
+    chdir: True
