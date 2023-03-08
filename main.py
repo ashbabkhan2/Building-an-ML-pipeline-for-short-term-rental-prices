@@ -111,7 +111,7 @@ def go(config: DictConfig):
                 os.path.join(root_dir,"src","train_random_forest"),
                 "main",
                 parameters={
-                    "trainval_artifact": "trainval_data.csv",
+                    "trainval_artifact": "trainval_data.csv:latest",
                     "val_size": config["modeling"]["val_size"],
                     "random_seed": config["modeling"]["random_seed"],
                     "stratify_by": config["modeling"]["stratify_by"],

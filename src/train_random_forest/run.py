@@ -14,7 +14,7 @@ import json
 
 import pandas as pd
 import numpy as np
-from mlflow.model import infer_signature
+from mlflow.models import infer_signature
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
@@ -77,13 +77,13 @@ def go(args):
     # Fit the pipeline sk_pipe by calling the .fit method on X_train and y_train
     # YOUR CODE HERE
     ######################################
-    sk_pipe.fit(X_train,y_train)
+    sk_pipe.fit(X_train[processed_features],y_train)
 
     # Compute r2 and MAE
     logger.info("Scoring")
-    r_squared = sk_pipe.score(X_val, y_val)
+    r_squared = sk_pipe.score(X_val[processed_features], y_val)
 
-    y_pred = sk_pipe.predict(X_val)
+    y_pred = sk_pipe.predict(X_val[processed_features])
     mae = mean_absolute_error(y_val, y_pred)
 
     logger.info(f"Score: {r_squared}")
@@ -100,7 +100,7 @@ def go(args):
     # HINT: use mlflow.sklearn.save_model
     # YOUR CODE HERE
     ######################################
-    signature = infer_signature(X_val,y_pred)
+    signature = infer_signature(X_val[processed_features],y_pred)
     
     with tempfile.TemporaryDirectory() as temp_dire:
         export_path = os.path.join(temp_dire,"random_forest_dir")
@@ -116,7 +116,7 @@ def go(args):
             args.output_artifact,
             type="ml_model",
             description="our random forest ML model",
-            meta_data=rf_config
+            metadata=rf_config
         )
 
         Artifact.add_dir(export_path)
