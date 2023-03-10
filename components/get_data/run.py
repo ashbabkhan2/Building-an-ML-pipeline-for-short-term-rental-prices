@@ -15,6 +15,14 @@ logger = logging.getLogger()
 
 
 def go(args):
+    """
+    this function upload the sample1.csv data as an artifact to weights & biases
+
+    input: args
+
+    return : None
+
+    """
 
     run = wandb.init(job_type="download_file")
     run.config.update(args)

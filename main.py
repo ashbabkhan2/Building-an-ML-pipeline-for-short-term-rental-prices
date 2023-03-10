@@ -1,3 +1,8 @@
+"""
+This is our main file which run all of our component in a particular workflow
+we only have to run this file and this will create an inference artifact in wandb
+when the execution of this file finishes
+"""
 import json
 
 import mlflow
@@ -120,20 +125,18 @@ def go(config: DictConfig):
                     "output_artifact": "random_forest_model"
                 }
             )
-
-            ##################
-            # Implement here #
-            ##################
-
             
 
         if "test_regression_model" in active_steps:
-
-            ##################
-            # Implement here #
-            ##################
-
-            pass
+            _ = mlflow.run(
+                os.path.join(root_dir,"components","test_regression_model"),
+                "main",
+                parameters={
+                    "mlflow_model": "random_forest_model:prod",
+                    "test_dataset": "test_data.csv:latest"
+                }
+            )
+            
 
 
 if __name__ == "__main__":

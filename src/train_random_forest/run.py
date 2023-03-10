@@ -25,7 +25,7 @@ import wandb
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.pipeline import Pipeline, make_pipeline
-
+import sklearn
 
 def delta_date_feature(dates):
     """
@@ -41,6 +41,7 @@ logger = logging.getLogger()
 
 
 def go(args):
+    print(sklearn.__version__)
 
     run = wandb.init(job_type="train_random_forest")
     run.config.update(args)

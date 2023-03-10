@@ -8,15 +8,14 @@ import wandb
 import mlflow
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
-
-from wandb_utils.log_artifact import log_artifact
-
+import sklearn
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
 logger = logging.getLogger()
 
 
 def go(args):
+    print(sklearn.__version__)
 
     run = wandb.init(job_type="test_model")
     run.config.update(args)
