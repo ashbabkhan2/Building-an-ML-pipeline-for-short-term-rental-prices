@@ -316,3 +316,11 @@ Once you are done, add the step to ``main.py``. we use the name ``random_forest_
 **_NOTE_**: the main.py file already provides a variable ``rf_config`` to be passed as the
             ``rf_config`` parameter.
 
+## optimize environments
+We need to optimize our hyperparameters to improve our model score and we easily do the same with mlflow.
+run the below command after getting into the root folder
+
+```
+mlflow run . -P hydra_options="modeling.max_tfidf_features=10,15,30 modeling.random_forest.max_features=0.1,0.25,0.33,0.75,1 -m"
+```
+this is how we pass multiple value in a single parameter using the `-m` the above command create 15 run a

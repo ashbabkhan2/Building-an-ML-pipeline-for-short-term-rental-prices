@@ -22,7 +22,8 @@ def go(args):
     data = pd.read_csv(artifact_path)
 
     logger.info(f"Selecting only those data in which price feature is between {args.min_price} and {args.max_price}")
-    new_data_boolean = data["price"].between(args.min_price,args.max_price)
+    new_data_boolean = data["price"].between(args.min_price,args.max_price) & data['longitude'].between(-74.25, -73.50) & data['latitude'].between(40.5, 41.2)
+
     new_data = data[new_data_boolean].copy()
 
     logger.info(f"previously data shape was {data.shape} and after filter it become {new_data.shape}")
