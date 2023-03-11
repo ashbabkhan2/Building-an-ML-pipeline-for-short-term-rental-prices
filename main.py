@@ -1,7 +1,11 @@
 """
 This is our main file which run all of our component in a particular workflow
 we only have to run this file and this will create an inference artifact in wandb
-when the execution of this file finishes
+when the execution of this file finishes.
+
+Date: 5/March/2023
+Author: ashbab khan
+
 """
 import json
 
@@ -13,24 +17,23 @@ import wandb
 import hydra
 from omegaconf import DictConfig
 
+# By default steps is set to "all" it means all component is run one 
+# by one but we have option to run a particular component by passing 
+# the steps value to hydra such as download, data_split etc. 
+
 _steps = [
     "download",
     "basic_cleaning",
     "data_check",
     "data_split",
-    "train_random_forest",
-    # NOTE: We do not include this in the steps so it is not run by mistake.
-    # You first need to promote a model export to "prod" before you can run this,
-    # then you need to run this step explicitly
-#    "test_regression_model"
+    "train_random_forest"
 ]
-
 
 # This automatically reads in the configuration
 @hydra.main(version_base="1.1",config_name='config')
 def go(config: DictConfig):
 
-    # Setup the wandb experiment. All runs will be grouped under this name
+    # Setting up the wandb experiment. All runs will be grouped under this name
     os.environ["WANDB_PROJECT"] = config["main"]["project_name"]
     os.environ["WANDB_RUN_GROUP"] = config["main"]["experiment_name"]
 
@@ -43,101 +46,118 @@ def go(config: DictConfig):
     # Move to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
 
+# ================================== get_data component ==========================================
+
         if "download" in active_steps:
-            # Download file and load in W&B
+            # running the get_data comnponent 
             _ = mlflow.run(
                 os.path.join(root_dir,"components/get_data"),
                 "main",
-                # version='main',
+                # version = 'main',
                 parameters={
                     "sample": config["etl"]["sample"],
-                    "artifact_name": "sample.csv",
-                    "artifact_type": "raw_data",
-                    "artifact_description": "Raw file as downloaded"
+                    "artifact_name": config["parameters"]["download"]["artifact_name"],
+                    "artifact_type": config["parameters"]["download"]["artifact_type"],
+                    "artifact_description": config["parameters"]["download"]["artifact_description"]
                 },
             )
 
+# ================================== basic_cleanings component ==========================================
+
         if "basic_cleaning" in active_steps:
+            # running the basic_cleaning component
             _ = mlflow.run(
                 os.path.join(root_dir,"src","basic_cleaning"),
                 "main",
+                # version = "main"
                 parameters={
-                    "input_artifact": "sample.csv:latest",
-                    "output_artifact": "clean_data.csv",
-                    "artifact_type": "clean_data",
-                    "artifact_description": "Cleaned artifact",
+                    "input_artifact": config["parameters"]["basic_cleaning"]["input_artifact"],
+                    "output_artifact": config["parameters"]["basic_cleaning"]["output_artifact"],
+                    "artifact_type": config["parameters"]["basic_cleaning"]["artifact_type"],
+                    "artifact_description": config["parameters"]["basic_cleaning"]["artifact_description"],
                     "min_price": config["etl"]["min_price"],
                     "max_price": config["etl"]["max_price"]
                 },
             )
 
-
+# ================================== data_check component ==========================================
 
         if "data_check" in active_steps:
+            # running the data_check component 
             _ = mlflow.run(
                 os.path.join(root_dir,"src","data_check"),
                 "main",
+                # version = "main"
                 parameters={
-                    "csv": "clean_data.csv:latest",
-                    "ref": "clean_data.csv:reference",
+                    "csv": config["parameters"]["data_check"]["csv"],
+                    "ref": config["parameters"]["data_check"]["ref"],
                     "kl_threshold": config["data_check"]["kl_threshold"],
                     "min_price": config["etl"]["min_price"],
                     "max_price": config["etl"]["max_price"]
                 }            
             )
             
+# ================================== data_split component ==========================================
 
         if "data_split" in active_steps:
-            ##################
-            # Implement here #
-            ##################
+            # running the data_split component
             _ = mlflow.run(
                 os.path.join(root_dir,"components","train_val_test_split"),
                 "main",
+                # version = "main"
                 parameters={
-                    "input": "clean_data.csv:latest",
+                    "input": config["parameters"]["data_split"]["input"],
                     "test_size": config["modeling"]["test_size"],
                     "random_seed": config["modeling"]["random_seed"],
                     "stratify_by": config["modeling"]["stratify_by"]
                 }
             )
             
+
+# ================================== train_random_forest component ==========================================
+
         if "train_random_forest" in active_steps:
 
-            # NOTE: we need to serialize the random forest configuration into JSON
+            # we need to serialize the random forest configuration into JSON
             rf_config = os.path.abspath("rf_config.json")
             with open(rf_config, "w+") as fp:
-                json.dump(dict(config["modeling"]["random_forest"].items()), fp)  # DO NOT TOUCH
+                json.dump(dict(config["modeling"]["random_forest"].items()), fp) 
 
-            # NOTE: use the rf_config we just created as the rf_config parameter for the train_random_forest
-            # step
-
+            # running the train_random_forest component
             _ = mlflow.run(
                 os.path.join(root_dir,"src","train_random_forest"),
                 "main",
+                # version = "main"
                 parameters={
-                    "trainval_artifact": "trainval_data.csv:latest",
+                    "trainval_artifact": config["parameters"]["train_random_forest"]["trainval_artifact"],
                     "val_size": config["modeling"]["val_size"],
                     "random_seed": config["modeling"]["random_seed"],
                     "stratify_by": config["modeling"]["stratify_by"],
                     "rf_config": rf_config,
                     "max_tfidf_features": config["modeling"]["max_tfidf_features"],
-                    "output_artifact": "random_forest_model"
+                    "output_artifact": config["parameters"]["train_random_forest"]["output_artifact"],
+                    "artifact_type": config["parameters"]["train_random_forest"]["artifact_type"],
+                    "artifact_description": config["parameters"]["train_random_forest"]["artifact_description"]
                 }
             )
             
+# ================================== test_regression_model component ==========================================
+
 
         if "test_regression_model" in active_steps:
+            # running the test_regression_model
             _ = mlflow.run(
                 os.path.join(root_dir,"components","test_regression_model"),
                 "main",
+                # version = "main"
                 parameters={
-                    "mlflow_model": "random_forest_model:prod",
-                    "test_dataset": "test_data.csv:latest"
+                    "mlflow_model": config["parameters"]["test_regression_model"]["mlflow_model"],
+                    "test_dataset": config["parameters"]["test_regression_model"]["test_dataset"]
                 }
             )
             
 
+# ====================================================================================================
 
 if __name__ == "__main__":
     go()

@@ -1,7 +1,11 @@
-#!/usr/bin/env python
 """
 This script splits the provided dataframe in test and remainder
+
+Date: 07/March/2023
+Developer: ashbab khan
+
 """
+
 import argparse
 import logging
 import pandas as pd
@@ -15,13 +19,18 @@ logger = logging.getLogger()
 
 def go(args):
 
+    """
+    this function will fetch the clean data artifact and then split it
+    into two artifact train and test based on the test size we pass 
+    and the saved it into two different artifacts.
+
+    """
+
     run = wandb.init(job_type="train_val_test_split")
     run.config.update(args)
 
-    # Download input artifact. This will also note that this script is using this
+    # Downloading input artifact. This will also note that this script is using this
     # particular version of the artifact
-    # artifact_path = wandb.use_artifact(args.input).file()
-    # data = pd.read_csv(artifact_path)
     logger.info(f"Fetching artifact {args.input}")
     artifact_local_path = run.use_artifact(args.input).file()
 
@@ -35,30 +44,45 @@ def go(args):
         stratify=df[args.stratify_by] if args.stratify_by != 'none' else None,
     )
 
-    # Save to output files
+    # This loop will generate two artifacts
     for df, k in zip([trainval, test], ['trainval', 'test']):
         logger.info(f"Uploading {k}_data.csv dataset")
         with tempfile.NamedTemporaryFile("w") as fp:
 
+            # Saving the csv file
             df.to_csv(fp.name, index=False)
-
-            # log_artifact(
-            #     f"{k}_data.csv",
-            #     f"{k}_data",
-            #     f"{k} split of dataset",
-            #     fp.name,
-            #     run,
-            # )
+            
+            # Creating a new Artifact
             artifact = wandb.Artifact(
                 f"{k}_data.csv",
                 f"{k}_data",
                 f"{k} split of data"
             )
+            
+            # Adding the recently saved csv to the artifact
             artifact.add_file(fp.name)
+
+            # Uploading the artifact to Weights and Biases
             run.log_artifact(artifact)
             artifact.wait()
 
 if __name__ == "__main__":
+    
+    """
+    This is the parser area and this catches the argument coming from cmd or MLProject
+    then we pass this argument to our go() function as args.
+
+    this python file takes 4 parameters from the MLProject and the input and test_size 
+    are compulsory that's why we included a keyword required = true
+    random_seed and stratify_by are optional.
+
+      1. input ( required )
+      2. test size ( required )
+      3. random seed ( optional )
+      4. stratify by ( optional )
+
+    """
+
     parser = argparse.ArgumentParser(description="Split test and remainder")
 
     parser.add_argument("--input", type=str, help="Input artifact to split")

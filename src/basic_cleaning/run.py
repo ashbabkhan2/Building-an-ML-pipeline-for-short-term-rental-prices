@@ -1,3 +1,12 @@
+"""
+This module perform basic cleaning such as filtering rows on the basis
+of the requirement.
+
+Date: 05/March/2023
+Developer: ashbab khan
+
+"""
+
 import argparse
 import wandb
 import logging
@@ -11,29 +20,43 @@ logging.basicConfig(
 logger = logging.getLogger()
 def go(args):
 
+    """
+    this function fetch the raw data from wandb and then filter the price column 
+    on the basis of the fixed range of values ( 10 to 350 )
+    and convert the datetime feature from object to datatime using pd.to_datetime().
+
+    """
+
     logger.info("Initializing a run")
+    # Initializing the run
     run = wandb.init(job_type="clean_data")
     run.config.update(args)
 
     logger.info(f"Using artifact {args.input_artifact}")
+    # fetching artifact path
     artifact_path = run.use_artifact(args.input_artifact).file()
 
     logger.info(f"Reading the file using pd.read_csv() method")
+    # reading the data
     data = pd.read_csv(artifact_path)
 
     logger.info(f"Selecting only those data in which price feature is between {args.min_price} and {args.max_price}")
-    new_data_boolean = data["price"].between(args.min_price,args.max_price) & data['longitude'].between(-74.25, -73.50) & data['latitude'].between(40.5, 41.2)
+    # filtering the price column to get only rows whose value between 10 to 350
+    new_data_boolean = data["price"].between(args.min_price,args.max_price)
 
     new_data = data[new_data_boolean].copy()
 
     logger.info(f"previously data shape was {data.shape} and after filter it become {new_data.shape}")
     
     logger.info(f"Converting our last_review feature from object to datatime datatype")
+    # converting last_review column from object to datetime
     new_data["last_review"] = pd.to_datetime(new_data["last_review"])
 
+    # saving the csv file
     new_data.to_csv("clean_sample.csv",index=False)
 
     logger.info(f"Creating artifact name {args.output_artifact}")
+    # Creating artifact
     artifact = wandb.Artifact(
         args.output_artifact,
         args.artifact_type,
@@ -41,13 +64,31 @@ def go(args):
     )
 
     logger.info(f"Adding clean_sample.csv to the artifact")
+    # adding our saved file
     artifact.add_file("clean_sample.csv")
 
+    # uploading the artifact
     run.log_artifact(artifact)
     logger.info("Artifact uploaded")
 
 
 if __name__ == "__main__":
+
+    """
+    This is the parser area and this catches the argument coming from cmd or MLProject
+    then we pass this argument to our go() function as args.
+
+    this python file takes 6 parameters from the MLProject and all are compulsory
+    that's why we included a keyword required = true
+
+      1. input artifact (required)
+      2. output artifact (required)
+      3. artifact type (required)
+      4. artifact description (required)
+      5. minimum price (required)
+      6. maximum price (required)
+
+    """
     parser = argparse.ArgumentParser(
         description="Cleaning dataset python file"
     )
