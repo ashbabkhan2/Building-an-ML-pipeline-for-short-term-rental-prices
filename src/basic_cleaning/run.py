@@ -45,7 +45,10 @@ def go(args):
         f"Selecting only those data in which price feature is between {args.min_price} \
           and {args.max_price}")
     # filtering the price column to get only rows whose value between 10 to 350
-    new_data_boolean = data["price"].between(args.min_price, args.max_price)
+    new_data_boolean = data["price"].between(
+        args.min_price, args.max_price) & data['longitude'].between(
+        -74.25, -73.50) & data['latitude'].between(
+            40.5, 41.2)
 
     new_data = data[new_data_boolean].copy()
 
