@@ -8,9 +8,9 @@ Developer: ashbab khan
 
 import argparse
 import logging
+import tempfile
 import pandas as pd
 import wandb
-import tempfile
 from sklearn.model_selection import train_test_split
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)-15s %(message)s")
@@ -18,10 +18,9 @@ logger = logging.getLogger()
 
 
 def go(args):
-
     """
     this function will fetch the clean data artifact and then split it
-    into two artifact train and test based on the test size we pass 
+    into two artifact train and test based on the test size we pass
     and the saved it into two different artifacts.
 
     """
@@ -51,14 +50,14 @@ def go(args):
 
             # Saving the csv file
             df.to_csv(fp.name, index=False)
-            
+
             # Creating a new Artifact
             artifact = wandb.Artifact(
                 f"{k}_data.csv",
                 f"{k}_data",
                 f"{k} split of data"
             )
-            
+
             # Adding the recently saved csv to the artifact
             artifact.add_file(fp.name)
 
@@ -66,38 +65,31 @@ def go(args):
             run.log_artifact(artifact)
             artifact.wait()
 
+
 if __name__ == "__main__":
-    
-    """
-    This is the parser area and this catches the argument coming from cmd or MLProject
-    then we pass this argument to our go() function as args.
-
-    this python file takes 4 parameters from the MLProject and the input and test_size 
-    are compulsory that's why we included a keyword required = true
-    random_seed and stratify_by are optional.
-
-      1. input ( required )
-      2. test size ( required )
-      3. random seed ( optional )
-      4. stratify by ( optional )
-
-    """
 
     parser = argparse.ArgumentParser(description="Split test and remainder")
 
     parser.add_argument("--input", type=str, help="Input artifact to split")
 
     parser.add_argument(
-        "--test_size", type=float, help="Size of the test split. Fraction of the dataset, or number of items"
-    )
+        "--test_size",
+        type=float,
+        help="Size of the test split. Fraction of the dataset, or number of items")
 
     parser.add_argument(
-        "--random_seed", type=int, help="Seed for random number generator", default=42, required=False
-    )
+        "--random_seed",
+        type=int,
+        help="Seed for random number generator",
+        default=42,
+        required=False)
 
     parser.add_argument(
-        "--stratify_by", type=str, help="Column to use for stratification", default='none', required=False
-    )
+        "--stratify_by",
+        type=str,
+        help="Column to use for stratification",
+        default='none',
+        required=False)
 
     args = parser.parse_args()
 

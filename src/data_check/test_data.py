@@ -15,11 +15,10 @@ import scipy.stats
 
 
 def test_column_names(data):
-
     """
-    Testing the column in the dataframe so that our data have the column 
+    Testing the column in the dataframe so that our data have the column
     that we need.
-    if there is any less or extra column compare to the expected_column or the 
+    if there is any less or extra column compare to the expected_column or the
     order is not right then this test will fail.
 
     """
@@ -50,7 +49,6 @@ def test_column_names(data):
 
 
 def test_neighborhood_names(data):
-
     """
     Testing the value in neighborhood column if the column doesn't contain
     the known_names value or contain any extra value other then known_names
@@ -67,39 +65,45 @@ def test_neighborhood_names(data):
 
 
 def test_proper_boundaries(data: pd.DataFrame):
-    
     """
     Testing proper longitude and latitude boundaries for properties in and around NYC
 
     """
-    
-    idx = data['longitude'].between(-74.25, -73.50) & data['latitude'].between(40.5, 41.2)
+
+    idx = data['longitude'].between(-74.25, - \
+                                    73.50) & data['latitude'].between(40.5, 41.2)
 
     assert np.sum(~idx) == 0
 
 
-def test_similar_neigh_distrib(data: pd.DataFrame, ref_data: pd.DataFrame, kl_threshold: float):
-    
+def test_similar_neigh_distrib(
+        data: pd.DataFrame,
+        ref_data: pd.DataFrame,
+        kl_threshold: float):
     """
     Applying a threshold on the KL divergence to detect if the distribution of the new data is
     significantly different than that of the reference dataset
-    
+
     """
     dist1 = data['neighbourhood_group'].value_counts().sort_index()
     dist2 = ref_data['neighbourhood_group'].value_counts().sort_index()
 
     assert scipy.stats.entropy(dist1, dist2, base=2) < kl_threshold
 
+
 def test_row_count(data):
-
     """
-    Testing the shape of the dataset so that it contain meaningful 
+    Testing the shape of the dataset so that it contain meaningful
     amount of data.
-    
+
     """
-    assert (data.shape[0] > 15000) & (data.shape[0] < 100000) 
+    assert (data.shape[0] > 15000) & (data.shape[0] < 100000)
 
 
+def test_price_range(data, min_price, max_price):
+    """
+    this test will ensure that our price column is between min price 
+    and max price
 
-def test_price_range(data,min_price,max_price):
-    assert data["price"].between(min_price,max_price).all()
+    """
+    assert data["price"].between(min_price, max_price).all()

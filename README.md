@@ -1,40 +1,64 @@
-# Build-an-ML-pipeline-for-short-term-rental-prices-in-NYC
-=======
+## Build an ML pipeline for short term rental prices in NYC
+==============================================
 # Build an ML Pipeline for Short-Term Rental Prices in NYC
 We are working for a property management company renting rooms and properties for short periods of time on various rental platforms We need to estimate the typical price for a given property based on the price of similar properties.
 The company receives new data in bulk every week. The model needs to be retrained with the same cadence, necessitating an end-to-end pipeline that can be reused.
+## Project Link 
+ <div>
+<a href="https://github.com/ashbabkhan2/Building-an-ML-pipeline-for-short-term-rental-prices">
+  <img src="https://img.shields.io/badge/Github-white?logoGithub&logoColor=black&style=for-the-badge" />  
+</a>
+</div>
 
+# Generated artifacts and configurations of this project
+All the artifact, summary, configurations are available publicly we can access by clicking on the below Weight & Biases icon 
+<div id="badges">
+  <a href="https://wandb.ai/ashbabkhan17/nyc_airbnb">
+    <img src="https://img.shields.io/badge/Weights_&_Biases-FFCC33?style=for-the-badge&logo=WeightsAndBiases&logoColor=black" />  
+  <a/>
+ </div>
+ <br />
 In this project we will build such a pipeline.
 
-- [Introduction](#build-an-ML-Pipeline-for-Short-Term-Rental-Prices-in-NYC)
+#### [ Introduction ](#build-an-ml-pipeline-for-Short-term-rental-prices-in-nyc)
   * [Create environment](#create-environment)
   * [Get API key for Weights and Biases](#get-api-key-for-weights-and-biases)
   * [The configuration](#the-configuration)
-  * [Running the entire pipeline or just a selection of steps](#Running-the-entire-pipeline-or-just-a-selection-of-steps)
+  * [Running the entire pipeline or just a selection of steps](#running-the-entire-pipeline-or-just-a-selection-of-steps)
   * [Exploratory Data Analysis (EDA)](#exploratory-data-analysis-eda)
   * [Data cleaning](#data-cleaning)
   * [Data testing](#data-testing)
   * [Data splitting](#data-splitting)
   * [Train Random Forest](#train-random-forest)
   * [Optimize hyperparameters](#optimize-hyperparameters)
-  * [Select the best model](#select-the-best-model)
+- [Generated artifacts and configurations](#generated-artifacts-and-configuration-of-this-project)
+<!--   * [Select the best model](#select-the-best-model)
   * [Test](#test)
   * [Visualize the pipeline](#visualize-the-pipeline)
   * [Release the pipeline](#release-the-pipeline)
   * [Train the model on a new data sample](#train-the-model-on-a-new-data-sample)
 - [Cleaning up](#cleaning-up)
-
+ -->
 
 ### Create environment
-Make sure to have conda installed and ready, then create a new environment using the ``environment.yml``
-file provided in the root of the repository and activate it:
+First we have to confirm that conda installed and ready in our pc, then create a new environment using the ``environment.yml``
+file this file contains the basics packages such as python, mlflow, wandb and some others packages:
+To create environment we have to run the below command.
 
 ```bash
 > conda env create -f environment.yml
+```
+
+the above command install all the packages that are in the ``environment.yml`` file and then we have to activate it using the command
+
+```bash
 > conda activate nyc_airbnb_dev
 ```
+
 ### Get API key for Weights and Biases
-Let's make sure we are logged in to Weights & Biases. Get your API key from W&B by going to 
+To access the Weights & Biases for fetching and storing artifacts we have to login in the terminal using the ``wandb login`` command 
+first we have to go to the below url and copy the key 
+
 [https://wandb.ai/authorize](https://wandb.ai/authorize) and click on the + icon (copy to clipboard), 
 then paste your key into this command:
 
@@ -42,14 +66,15 @@ then paste your key into this command:
 > wandb login [your API key]
 ```
 
-You should see a message similar to:
+We should see a message similar to:
 ```
 wandb: Appending key for api.wandb.ai to your netrc file: /home/[your username]/.netrc
 ```
 ### The configuration
 As usual, the parameters controlling the pipeline are defined in the ``config.yaml`` file defined in
 the root of the starter kit. We will use Hydra to manage this configuration file. 
-Remember: this file is only read by the ``main.py`` script 
+this file is only read by the ``main.py`` script and from main.py we pass it to other components.
+
 (i.e., the pipeline) and its content is
 available with the ``go`` function in ``main.py`` as the ``config`` dictionary. For example,
 the name of the project is contained in the ``project_name`` key under the ``main`` section in
@@ -57,29 +82,31 @@ the configuration file. It can be accessed from the ``go`` function as
 ``config["main"]["project_name"]``.
 
 NOTE: It is NOT recommended to hardcode any parameter when writing the pipeline. All the parameters should be 
-accessed from the configuration file.
+accessed from the configuration file that's we are using hydra to avid hard coding.
 
 ### Running the entire pipeline or just a selection of steps
-In order to run the pipeline when you are developing, you need to be in the root of the starter kit, 
-then you can execute as usual:
+In order to run the pipeline we need to be in the root of the starter kit, 
+then we can execute as usual:
 
 ```bash
 >  mlflow run .
 ```
 This will run the entire pipeline.
 
-When developing it is useful to be able to run one step at the time. Say you want to run only
+When developing it is useful to be able to run one step at the time. Say we want to run only
 the ``download`` step. The `main.py` is written so that the steps are defined at the top of the file, in the 
 ``_steps`` list, and can be selected by using the `steps` parameter on the command line:
 
 ```bash
-> mlflow run . -P steps=download
+> mlflow run . -P hydra_options="main.steps=download"
 ```
-If you want to run the ``download`` and the ``basic_cleaning`` steps, you can similarly do:
+
+If we want to run the ``download`` and the ``basic_cleaning`` steps, we can similarly do:
+
 ```bash
-> mlflow run . -P steps=download,basic_cleaning
+> mlflow run . -P hydra_options="main.steps=download,basic_cleaning"
 ```
-You can override any other parameter in the configuration file using the Hydra syntax, by
+We can override any other parameter in the configuration file using the Hydra syntax, by
 providing it as a ``hydra_options`` parameter. For example, say that we want to set the parameter
 modeling -> random_forest -> n_estimators to 10 and etl->min_price to 50:
 
@@ -93,19 +120,19 @@ modeling -> random_forest -> n_estimators to 10 and etl->min_price to 50:
 The scope of this section is to get an idea of how the process of an EDA in the context of
 pipelines, during the data exploration phase. 
 
-1. Run the pipeline to 
+1. we run the pipeline to 
    get a sample of the data. The pipeline will also upload it to Weights & Biases:
    
   ```bash
   > mlflow run . -P steps=download
   ```
   
-  You will see a message similar to:
+  We will see a message similar to:
 
   ```
   2021-03-12 15:44:39,840 Uploading sample.csv to Weights & Biases
   ```
-  This tells you that the data is going to be stored in W&B as the artifact named ``sample.csv``.
+  This tells us that the data is going to be stored in W&B as the artifact named ``sample.csv``.
 
 2. Now we execute the `eda` step:
    ```bash
@@ -211,7 +238,7 @@ artifact tab. Click on "clean_sample", then on the version with the ``latest`` t
 last one we produced in the previous step. We add a tag ``reference`` to it by clicking the "+"
 in the Aliases section on the right:
 
-![reference tag](images/wandb-tag-data-test.png "adding a reference tag")
+![reference tag](images/Screenshot_2023-03-10-17-38-09-02.jpg "adding a reference tag")
  
 Now we are ready to add some tests. In the below file test_data.py contain our test code 
 ``src/data_check/test_data.py`` perform the following test:
@@ -262,14 +289,14 @@ the first thing that we do is pass the random_forest section available in the ``
 
 then we fetch the training dataset artifact from wandb using the below command and create our input and target features.
 
-```
+```python
 trainval_local_path = run.use_artifact(args.trainval_artifact).file()
 X = pd.read_csv(trainval_local_path)
 y = X.pop("price")  # this removes the column "price" from X and puts it into y
 ```
 After training and scoring the model we now save our model to a temporary random_forest_dir which will be deleted after uploading this diirectory to weights & biases. 
 
-```
+```python
 signature = infer_signature(X_val[processed_features],y_pred)
     
     with tempfile.TemporaryDirectory() as temp_dire:
@@ -284,7 +311,7 @@ signature = infer_signature(X_val[processed_features],y_pred)
 ```
 we now upload this model artifact to Weights & Biases and one important note here we are uploading a directory instead a file that's why we ``.add_dir `` instead of ``.add_file``
 
-```
+```python
 Artifact = wandb.Artifact(
     args.output_artifact,
     type="ml_model",
@@ -299,7 +326,8 @@ Artifact.wait()
 
 ```
 We also log our metrics just we use below r2 score and mean_absolute_error
-```
+
+```python
     run.summary['r2'] = r_squared
     run.summary["mae"] = mae
 
@@ -316,11 +344,11 @@ Once you are done, add the step to ``main.py``. we use the name ``random_forest_
 **_NOTE_**: the main.py file already provides a variable ``rf_config`` to be passed as the
             ``rf_config`` parameter.
 
-## optimize environments
+## optimize hyperparameters
 We need to optimize our hyperparameters to improve our model score and we easily do the same with mlflow.
 run the below command after getting into the root folder
 
-```
+```bash
 mlflow run . -P hydra_options="modeling.max_tfidf_features=10,15,30 modeling.random_forest.max_features=0.1,0.25,0.33,0.75,1 -m"
 ```
 this is how we pass multiple value in a single parameter using the `-m` the above command create 15 run a
