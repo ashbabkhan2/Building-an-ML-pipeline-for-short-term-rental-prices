@@ -1,9 +1,9 @@
-mlflow==2.0.1
 python==3.10.9
 ipython
 notebook
 jupyterlab
 cookiecutter
+mlflow==2.0.1
 hydra-core
 matplotlib
 pandas
