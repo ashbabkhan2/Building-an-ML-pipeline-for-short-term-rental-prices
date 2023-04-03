@@ -1,5 +1,5 @@
-mlflow=2.0.1
-python=3.10.9
+mlflow==2.0.1
+python==3.10.9
 ipython
 notebook
 jupyterlab
