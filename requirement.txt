@@ -1,1 +1,12 @@
-a
+mlflow=2.0.1
+python=3.10.9
+ipython
+notebook
+jupyterlab
+cookiecutter
+hydra-core
+matplotlib
+pandas
+git
+pip
+wandb==0.13.9
